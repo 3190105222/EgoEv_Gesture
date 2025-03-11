@@ -3,6 +3,7 @@ Official PyTorch implementation of the paper "EgoEv-Gesture: Gesture Recognition
 
 ## News
 - [2025/02]: We release our code!
+- [2025/02]: We release our dataset!
 </br>
 
 ## Abstract
