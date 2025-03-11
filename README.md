@@ -10,12 +10,15 @@ Egocentric gesture recognition is a pivotal technology for enhancing natural hum
 To address this, we propose a novel network architecture specifically designed for event data processing, incorporating (1) a lightweight CNN with asymmetric depthwise convolutions to reduce parameters while preserving spatiotemporal features, (2) a plug-and-play state-space model as context block that decouples head movement noise from gesture dynamics, and (3) a parameter-free Bins-Temporal Shift Module (BSTM) that shifts features along bins and temporal dimensions to fuse sparse events efficiently.
 We further build the EgoEvGesture dataset, the first large-scale dataset for egocentric gesture recognition using event cameras. Experimental results demonstrate that our method achieves 62.7\% accuracy in heterogeneous testing with only 7M parameters, 3.1\% higher than state-of-the-art approaches.
 
+## Dataset
+The Dataset can be downloaded via the following link: https://pan.baidu.com/s/1o4dyxnJGe9aNCpM7w4CY4g?pwd=hjsn
+
 ## Method
 | ![EgoEv-Gesture.jpg](./teaser/method.png) | 
 |:--:| 
 
 ## TODO
-- [ ] Dataset Release
+- [x] Dataset Release
 - [ ] Paper Release
 - [x] Code Release
 
