@@ -4,56 +4,6 @@ from torch.nn import functional as F
 from .blazepose import BlazePose, ClassHead
 import matplotlib.pyplot as plt
 
-class EEG(nn.Module):
-    def __init__(self, config):
-        super(EEG, self).__init__()
-
-        self.n_joints = config.NUM_JOINTS
-
-        self.blaze_pose = BlazePose(config)
-
-        self.enable_eros = config.EROS
-        inp_chn = config.MODEL.INPUT_CHANNEL
-        width, height = config.MODEL.IMAGE_SIZE
-        self.hm_width, self.hm_height = config.MODEL.HEATMAP_SIZE
-
-        kernal_size = config.DATASET.EROS.KERNEL_SIZE
-        decay_base = config.DATASET.EROS.DECAY_BASE
-
-        self.classification_head = ClassHead(32, 2, config,activation='leaky_relu')
-        
-        self.temporal_shift = TemporalShift(fold_div=3)
-
-
-    def forward(self, x, prev_buffer=None, prev_key=None, batch_first=False):
-        T, B, C, H, W = x.shape  # 输入形状为 [T, B, C, H, W]
-        N = 8  # 时间段数
-        T_per_seg = T // N  # 每段时间内的帧数
-        
-        # 1. 将输入从 [T, B, C, H, W] 转换为 [B, T, C, H, W]
-        x = x.permute(1, 0, 2, 3, 4).contiguous()  # 形状变为 [B, T, C, H, W]
-        x_segments = x.chunk(N, dim=1)
-
-        features = []
-        for seg in x_segments:
-        # 将每段时间的特征展平为 [B * T_per_seg, C, H, W]
-            seg = seg.reshape(B * T_per_seg, C, H, W)
-            # 通过 BlazePose 提取特征，输出形状为 [B * T_per_seg, F]，其中 F=2048
-            feat = self.blaze_pose(seg)  # 输出形状为 [B * T_per_seg, 2048]
-            # 将特征重新调整为 [B, T_per_seg, F]
-            feat = feat.view(B, T_per_seg, -1)
-            features.append(feat)# 将特征在时间维度上堆叠
-        features_stacked = torch.stack(features, dim=2)  # [B, T_per_seg, N, F, H', W']
-        # print("features_stacked.size():")
-        # print(features_stacked.size())
-        # 应用TSM模块
-        features_tsm = self.temporal_shift(features_stacked)  # [B, T_per_seg, N, F, H', W']
-        # 特征聚合，例如取平均
-        features_agg = features_tsm.mean(dim=2)  # [B, T_per_seg, F, H', W']
-         # 将时间维度和批量维度合并
-        features_agg = features_agg.view(B * T_per_seg, -1)# 送入分类头进行分类
-        x = self.classification_head(features_agg)
-        return x
 
 class TemporalShift(nn.Module):
     def __init__(self, fold_div=4):
